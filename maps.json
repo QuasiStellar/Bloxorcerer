@@ -1,0 +1,22 @@
+{
+  "level1": {
+    "map": [
+      "               ",
+      "               ",
+      "  bbb          ",
+      "  bbbbbb       ",
+      "  bbbbbbbbb    ",
+      "   bbbbbbbbb   ",
+      "       bbebb   ",
+      "        bbb    ",
+      "               ",
+      "               "
+    ],
+    "entrance": [
+      3,
+      3
+    ],
+    "switches": {
+    }
+  }
+}

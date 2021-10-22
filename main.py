@@ -1,13 +1,16 @@
 import math
 import random
 import tkinter
-import maps
+import json
 
 WIDTH = 15
 HEIGHT = 10
-MAP = maps.MAPS[0]
-ENTRANCE = (3, 3)
-SWITCHES = {}
+LEVEL = 1
+with open('maps.json') as maps:
+    maps = json.load(maps)
+    MAP = maps['level' + str(LEVEL)]['map']
+    ENTRANCE = maps['level' + str(LEVEL)]['entrance']
+    SWITCHES = maps['level' + str(LEVEL)]['switches']
 
 width = WIDTH * 2 - 1
 height = HEIGHT * 2 - 1
