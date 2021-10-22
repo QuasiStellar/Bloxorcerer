@@ -1,19 +1,11 @@
 import math
 import random
 import tkinter
+import maps
 
 WIDTH = 15
 HEIGHT = 10
-MAP = ['               ',
-       '               ',
-       '  bbb          ',
-       '  bbbbbb       ',
-       '  bbbbbbbbb    ',
-       '   bbbbbbbbb   ',
-       '       bbebb   ',
-       '        bbb    ',
-       '               ',
-       '               ']
+MAP = maps.MAPS[0]
 ENTRANCE = (3, 3)
 SWITCHES = {}
 
