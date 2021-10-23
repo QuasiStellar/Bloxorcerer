@@ -18,5 +18,45 @@
     ],
     "switches": {
     }
+  },
+  "level3": {
+    "map": [
+      "               ",
+      "               ",
+      "      bbbbbbb  ",
+      "bbbb  bbb  bb  ",
+      "bbbbbbbbb  bbbb",
+      "bbbb       bbeb",
+      "bbbb       bbbb",
+      "            bbb",
+      "               ",
+      "               "
+    ],
+    "entrance": [
+      1,
+      5
+    ],
+    "switches": {
+    }
+  },
+  "level6": {
+    "map": [
+      "     bbbbbb    ",
+      "     b  bbb    ",
+      "     b  bbbbb  ",
+      "bbbbbb     bbbb",
+      "    bbb    bbeb",
+      "    bbb     bbb",
+      "      b  bb    ",
+      "      bbbbb    ",
+      "      bbbbb    ",
+      "       bbb     "
+    ],
+    "entrance": [
+      0,
+      3
+    ],
+    "switches": {
+    }
   }
 }

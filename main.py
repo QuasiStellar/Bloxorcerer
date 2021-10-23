@@ -5,7 +5,7 @@ import json
 
 WIDTH = 15
 HEIGHT = 10
-LEVEL = 1
+LEVEL = 6
 with open('maps.json') as maps:
     maps = json.load(maps)
     MAP = maps['level' + str(LEVEL)]['map']
@@ -14,7 +14,7 @@ with open('maps.json') as maps:
 
 width = WIDTH * 2 - 1
 height = HEIGHT * 2 - 1
-level_entrance = tuple(map(lambda a: a * 2, ENTRANCE))
+level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
 fastest = math.inf
 
 
@@ -73,11 +73,11 @@ def inbetween(x1, y1, x2, y2):
 def generate_graph():
     level_map_frame1 = {}
     _exit = (-1, -1)
-    for i in range(HEIGHT):
-        for j in range(WIDTH):
-            if MAP[i][j] != ' ':
+    for i in range(WIDTH):
+        for j in range(HEIGHT):
+            if MAP[j][i] != ' ':
                 level_map_frame1[(i * 2, j * 2)] = []
-                if MAP[i][j] == 'e':
+                if MAP[j][i] == 'e':
                     _exit = (i * 2, j * 2)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
@@ -94,23 +94,23 @@ def generate_graph():
 
 def draw_graph(_map):
     for dot in _map:
-        canvas.create_oval(dot[1] * 20 - 5 + 20,
-                           dot[0] * 20 - 5 + 20,
-                           dot[1] * 20 + 5 + 20,
+        canvas.create_oval(dot[0] * 20 - 5 + 20,
+                           dot[1] * 20 - 5 + 20,
                            dot[0] * 20 + 5 + 20,
+                           dot[1] * 20 + 5 + 20,
                            fill='blue' if (dot[1] + dot[0]) % 2 else 'red',
                            outline='blue' if (dot[1] + dot[0]) % 2 else 'red')
         for neighbour in _map[dot]:
-            canvas.create_line(dot[1] * 20 + 20,
-                               dot[0] * 20 + 20,
-                               *inbetween(dot[1] * 20 + 35,
-                                          dot[0] * 20 + 35,
-                                          neighbour[1] * 20 + 35,
-                                          neighbour[0] * 20 + 35),
-                               neighbour[1] * 20 + 20,
+            canvas.create_line(dot[0] * 20 + 20,
+                               dot[1] * 20 + 20,
+                               *inbetween(dot[0] * 20 + 35,
+                                          dot[1] * 20 + 35,
+                                          neighbour[0] * 20 + 35,
+                                          neighbour[1] * 20 + 35),
                                neighbour[0] * 20 + 20,
+                               neighbour[1] * 20 + 20,
                                smooth=1,
-                               fill='blue' if abs(dot[1] + dot[0] - neighbour[1] - neighbour[0]) == 2 else 'red')
+                               fill='blue' if abs(dot[0] + dot[1] - neighbour[0] - neighbour[1]) == 2 else 'red')
 
 
 class Condition:
@@ -129,6 +129,14 @@ class Condition:
 
     def generate_new(self):
         for _neighbour in neighbours_block(self.pos_x, self.pos_y):
+            if self.pos_x == 4 and self.pos_y == 18:
+                print(_neighbour)
+                canvas.create_oval(_neighbour[0] * 20 - 5 + 20,
+                                   _neighbour[1] * 20 - 5 + 20,
+                                   _neighbour[0] * 20 + 5 + 20,
+                                   _neighbour[1] * 20 + 5 + 20,
+                                   fill='black',
+                                   outline='black')
             if _neighbour not in level_map:
                 continue
             condition_hash = hash(_neighbour)
@@ -162,24 +170,25 @@ for condition in conditions:
 print("Checked",
       len(conditions),
       "possible condition..." if len(conditions) == 1 else "possible conditions...")
-print("Found",
-      len(solutions),
-      "solution" if len(solutions) == 1 else "solutions",
-      "that take",
-      solutions[0].turn,
-      "turns.")
+if len(solutions):
+    print("Found",
+          len(solutions),
+          "solution" if len(solutions) == 1 else "solutions",
+          "that take",
+          solutions[0].turn,
+          "turns.")
 # for solution in solutions:
 #     print(solution.route)
 for solution in solutions:
     previous_step = level_entrance
-    color = "#"+("%06x" % random.randint(0, 16777215))
+    color = "#" + ("%06x" % random.randint(0, 16777215))
     for step in solution.route:
-        canvas.create_line(previous_step[1] * 20 + 20,
-                           previous_step[0] * 20 + 20,
-                           previous_step[1] * 10 + step[1] * 10 + 20 + random.randint(-10, 10),
+        canvas.create_line(previous_step[0] * 20 + 20,
+                           previous_step[1] * 20 + 20,
                            previous_step[0] * 10 + step[0] * 10 + 20 + random.randint(-10, 10),
-                           step[1] * 20 + 20,
+                           previous_step[1] * 10 + step[1] * 10 + 20 + random.randint(-10, 10),
                            step[0] * 20 + 20,
+                           step[1] * 20 + 20,
                            smooth=1,
                            fill=color,
                            width=3)
