@@ -2,20 +2,43 @@ import math
 import random
 import tkinter
 import json
+from collections import defaultdict
+import sys
+
 
 WIDTH = 15
 HEIGHT = 10
-LEVEL = 13
+LEVEL = 2
 with open('maps.json') as maps:
     maps = json.load(maps)
     MAP = maps['level' + str(LEVEL)]['map']
     ENTRANCE = maps['level' + str(LEVEL)]['entrance']
-    SWITCHES = maps['level' + str(LEVEL)]['switches']
+    SWITCHES = [[[platform[0] * 2, platform[1] * 2, platform[2]] for platform in switch]
+                for switch in maps['level' + str(LEVEL)]['switches']]
 
 width = WIDTH * 2 - 1
 height = HEIGHT * 2 - 1
 level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
 fastest = math.inf
+holes = set([(hole[0], hole[1]) for switch in SWITCHES for hole in switch])
+holes_plus = set()
+
+sys.setrecursionlimit(3000)
+
+
+def neighbours_button(x, y):
+    neighbours = []
+    if (x + y) % 2:
+        return neighbours
+    if y >= 1:
+        neighbours.append((x, y - 1))
+    if y <= height - 2:
+        neighbours.append((x, y + 1))
+    if x >= 1:
+        neighbours.append((x - 1, y))
+    if x <= width - 2:
+        neighbours.append((x + 1, y))
+    return neighbours
 
 
 def neighbours_cube(x, y):
@@ -88,12 +111,30 @@ def generate_graph():
         for j in range(HEIGHT):
             if MAP[j][i] == 'f':
                 level_map_frame1.pop((i * 2, j * 2))
+    _switch_map = defaultdict(list)
+    index = 0
+    for i in range(WIDTH):
+        for j in range(HEIGHT):
+            if MAP[j][i] == 'h':
+                _switch_map[(i * 2, j * 2)].append(SWITCHES[index])
+                index += 1
+            if MAP[j][i] == 's':
+                _switch_map[(i * 2, j * 2)].append(SWITCHES[index])
+                for neighbour in neighbours_button(i * 2, j * 2):
+                    if neighbour in level_map_frame1:
+                        _switch_map[neighbour].append(SWITCHES[index])
+                index += 1
+    for hole in holes:
+        holes_plus.add(hole)
+        for neighbour in neighbours_button(*hole):
+            if neighbour in level_map_frame1:
+                holes_plus.add(neighbour)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
         for neighbour in neighbours_block(*key):
             if neighbour in level_map_frame2 and neighbour not in level_map_frame1[key]:
                 level_map_frame1[key].append(neighbour)
-    return level_map_frame1, _exit
+    return level_map_frame1, _exit, _switch_map
 
 
 def draw_graph(_map):
@@ -118,9 +159,11 @@ def draw_graph(_map):
 
 
 class Condition:
-    def __init__(self, pos_x, pos_y, turn, route, done):
+    def __init__(self, pos_x, pos_y, _holes, _holes_plus, turn, route, done):
         self.pos_x = pos_x
         self.pos_y = pos_y
+        self.holes = _holes
+        self.holes_plus = _holes_plus
         self.turn = turn
         self.route = route
         self.done = done
@@ -133,21 +176,35 @@ class Condition:
 
     def generate_new(self):
         for _neighbour in neighbours_block(self.pos_x, self.pos_y):
-            if self.pos_x == 4 and self.pos_y == 18:
-                print(_neighbour)
-                canvas.create_oval(_neighbour[0] * 20 - 5 + 20,
-                                   _neighbour[1] * 20 - 5 + 20,
-                                   _neighbour[0] * 20 + 5 + 20,
-                                   _neighbour[1] * 20 + 5 + 20,
-                                   fill='black',
-                                   outline='black')
-            if _neighbour not in level_map:
+            if _neighbour not in level_map or _neighbour in self.holes_plus:
                 continue
-            condition_hash = hash(_neighbour)
+            new_holes = self.holes.copy()
+            new_holes_plus = self.holes_plus.copy()
+            if _neighbour in switch_map:
+                new_holes_plus = set()
+                for platform_set in switch_map[_neighbour]:
+                    for platform in platform_set:
+                        if platform[2] == 'on' and (platform[0], platform[1]) in new_holes:
+                            new_holes.remove((platform[0], platform[1]))
+                        elif platform[2] == 'off' and (platform[0], platform[1]) not in new_holes:
+                            new_holes.add((platform[0], platform[1]))
+                        elif platform[2] == 'onoff':
+                            if (platform[0], platform[1]) in new_holes:
+                                new_holes.remove((platform[0], platform[1]))
+                            else:
+                                new_holes.add((platform[0], platform[1]))
+                for hole in new_holes:
+                    new_holes_plus.add(hole)
+                    for neighbour in neighbours_button(*hole):
+                        if neighbour in level_map:
+                            new_holes_plus.add(neighbour)
+            condition_hash = hash((_neighbour, tuple(new_holes)))
             if condition_hash in condition_set and condition_set[condition_hash] >= self.turn or \
                     condition_hash not in condition_set:
                 condition_set[condition_hash] = self.turn
                 conditions.append(Condition(*_neighbour,
+                                            new_holes,
+                                            new_holes_plus,
                                             self.turn + 1,
                                             self.route + [_neighbour],
                                             False))
@@ -158,12 +215,12 @@ canvas = tkinter.Canvas(root)
 canvas.config(width=600, height=400)
 canvas.pack()
 
-level_map, level_exit = generate_graph()
+level_map, level_exit, switch_map = generate_graph()
 draw_graph(level_map)
 
 conditions = []
 condition_set = {}
-conditions.append(Condition(*level_entrance, 0, [], False))
+conditions.append(Condition(*level_entrance, holes, holes_plus, 0, [], False))
 solutions = []
 for condition in conditions:
     if condition.done and condition.turn < fastest:
@@ -178,7 +235,7 @@ if len(solutions):
     print("Found",
           len(solutions),
           "solution" if len(solutions) == 1 else "solutions",
-          "that take",
+          "that takes" if len(solutions) == 1 else "that take",
           solutions[0].turn,
           "turns.")
 # for solution in solutions:
