@@ -5,7 +5,7 @@ import json
 
 WIDTH = 15
 HEIGHT = 10
-LEVEL = 6
+LEVEL = 13
 with open('maps.json') as maps:
     maps = json.load(maps)
     MAP = maps['level' + str(LEVEL)]['map']
@@ -84,6 +84,10 @@ def generate_graph():
         for neighbour in neighbours_cube(*key):
             if neighbour in level_map_frame2:
                 level_map_frame1[inbetween(*key, *neighbour)] = []
+    for i in range(WIDTH):
+        for j in range(HEIGHT):
+            if MAP[j][i] == 'f':
+                level_map_frame1.pop((i * 2, j * 2))
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
         for neighbour in neighbours_block(*key):
