@@ -11,21 +11,56 @@ HEIGHT = 10
 
 LEVEL = 5
 
-with open('maps.json') as maps_file:
-    maps = json.load(maps_file)
-    MAP = maps['level' + str(LEVEL)]['map']
-    ENTRANCE = (maps['level' + str(LEVEL)]['entrance']['x'], maps['level' + str(LEVEL)]['entrance']['y'])
-    SWITCHES = maps['level' + str(LEVEL)]['switches']
 
-width = WIDTH * 2 - 1
-height = HEIGHT * 2 - 1
-level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
-fastest = math.inf
-holes = set([(platform["x"] * 2, platform["y"] * 2) for switch in SWITCHES for platform in switch["platforms"]
-             if MAP[platform["y"]][platform["x"]] in ('l', 'r')])
-holes_plus = set()
+class Condition:
+    def __init__(self, pos_x, pos_y, _holes, _holes_plus, turn, route, done):
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.holes = _holes
+        self.holes_plus = _holes_plus
+        self.turn = turn
+        self.route = route
+        self.done = done
+        if (pos_x, pos_y) == level_exit:
+            self.done = True
+        if turn > fastest:
+            pass
+        else:
+            self.generate_new()
 
-sys.setrecursionlimit(3000)
+    def generate_new(self):
+        for _neighbour in neighbours_block(self.pos_x, self.pos_y):
+            if _neighbour not in level_map or _neighbour in self.holes_plus:
+                continue
+            new_holes = self.holes.copy()
+            new_holes_plus = self.holes_plus.copy()
+            if _neighbour in switch_map:
+                new_holes_plus = set()
+                for platform in switch_map[_neighbour]:
+                    if platform["mode"] == 'on' and (platform["x"], platform["y"]) in new_holes:
+                        new_holes.remove((platform["x"], platform["y"]))
+                    elif platform["mode"] == 'off' and (platform["x"], platform["y"]) not in new_holes:
+                        new_holes.add((platform["x"], platform["y"]))
+                    elif platform["mode"] == 'onoff':
+                        if (platform["x"], platform["y"]) in new_holes:
+                            new_holes.remove((platform["x"], platform["y"]))
+                        else:
+                            new_holes.add((platform["x"], platform["y"]))
+                for hole in new_holes:
+                    new_holes_plus.add(hole)
+                    for neighbour in neighbours_button(*hole):
+                        if neighbour in level_map:
+                            new_holes_plus.add(neighbour)
+            condition_hash = hash((_neighbour, tuple(new_holes)))
+            if condition_hash in condition_set and condition_set[condition_hash] >= self.turn or \
+                    condition_hash not in condition_set:
+                condition_set[condition_hash] = self.turn
+                conditions.append(Condition(*_neighbour,
+                                            new_holes,
+                                            new_holes_plus,
+                                            self.turn + 1,
+                                            self.route + [_neighbour],
+                                            False))
 
 
 def neighbours_button(x, y):
@@ -95,6 +130,14 @@ def inbetween(x1, y1, x2, y2):
     return (x1 + x2) // 2, (y1 + y2) // 2
 
 
+def double_coordinates(switches):
+    for switch in switches:
+        switch['button']['x'], switch['button']['y'] = switch['button']['x'] * 2, switch['button']['y'] * 2
+        for platform in switch['platforms']:
+            platform['x'], platform['y'] = platform['x'] * 2, platform['y'] * 2
+    return switches
+
+
 def generate_graph():
     level_map_frame1 = {}
     _exit = (-1, -1)
@@ -115,13 +158,13 @@ def generate_graph():
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
     for switch in SWITCHES:
-        if MAP[switch['button']['y']][switch['button']['x']] == 'h':
+        if MAP[switch['button']['y'] // 2][switch['button']['x'] // 2] == 'h':
             for platform in switch["platforms"]:
-                _switch_map[(switch['button']['x'] * 2, switch['button']['y'] * 2)].append(platform)
-        elif MAP[switch['button']['y']][switch['button']['x']] == 's':
+                _switch_map[(switch['button']['x'], switch['button']['y'])].append(platform)
+        elif MAP[switch['button']['y'] // 2][switch['button']['x'] // 2] == 's':
             for platform in switch['platforms']:
-                _switch_map[(switch['button']['x'] * 2, switch['button']['y'] * 2)].append(platform)
-                for neighbour in neighbours_button(switch['button']['x'] * 2, switch['button']['y'] * 2):
+                _switch_map[(switch['button']['x'], switch['button']['y'])].append(platform)
+                for neighbour in neighbours_button(switch['button']['x'], switch['button']['y']):
                     if neighbour in level_map_frame1:
                         _switch_map[neighbour].append(platform)
     for hole in holes:
@@ -158,100 +201,70 @@ def draw_graph(_map):
                                fill='blue' if abs(dot[0] + dot[1] - neighbour[0] - neighbour[1]) == 2 else 'red')
 
 
-class Condition:
-    def __init__(self, pos_x, pos_y, _holes, _holes_plus, turn, route, done):
-        self.pos_x = pos_x
-        self.pos_y = pos_y
-        self.holes = _holes
-        self.holes_plus = _holes_plus
-        self.turn = turn
-        self.route = route
-        self.done = done
-        if (pos_x, pos_y) == level_exit:
-            self.done = True
-        if turn > fastest:
-            pass
-        else:
-            self.generate_new()
-
-    def generate_new(self):
-        for _neighbour in neighbours_block(self.pos_x, self.pos_y):
-            if _neighbour not in level_map or _neighbour in self.holes_plus:
-                continue
-            new_holes = self.holes.copy()
-            new_holes_plus = self.holes_plus.copy()
-            if _neighbour in switch_map:
-                new_holes_plus = set()
-                for platform in switch_map[_neighbour]:
-                    if platform["mode"] == 'on' and (platform["x"] * 2, platform["y"] * 2) in new_holes:
-                        new_holes.remove((platform["x"] * 2, platform["y"] * 2))
-                    elif platform["mode"] == 'off' and (platform["x"] * 2, platform["y"] * 2) not in new_holes:
-                        new_holes.add((platform["x"] * 2, platform["y"] * 2))
-                    elif platform["mode"] == 'onoff':
-                        if (platform["x"] * 2, platform["y"] * 2) in new_holes:
-                            new_holes.remove((platform["x"] * 2, platform["y"] * 2))
-                        else:
-                            new_holes.add((platform["x"] * 2, platform["y"] * 2))
-                for hole in new_holes:
-                    new_holes_plus.add(hole)
-                    for neighbour in neighbours_button(*hole):
-                        if neighbour in level_map:
-                            new_holes_plus.add(neighbour)
-            condition_hash = hash((_neighbour, tuple(new_holes)))
-            if condition_hash in condition_set and condition_set[condition_hash] >= self.turn or \
-                    condition_hash not in condition_set:
-                condition_set[condition_hash] = self.turn
-                conditions.append(Condition(*_neighbour,
-                                            new_holes,
-                                            new_holes_plus,
-                                            self.turn + 1,
-                                            self.route + [_neighbour],
-                                            False))
+def show_results():
+    print("Checked",
+          len(conditions),
+          "possible condition..." if len(conditions) == 1 else "possible conditions...")
+    if len(solutions):
+        print("Found",
+              len(solutions),
+              "solution" if len(solutions) == 1 else "solutions",
+              "that takes" if len(solutions) == 1 else "that take",
+              solutions[0].turn,
+              "turns.")
+    for solution in solutions:
+        print(solution.route)
+    for solution in solutions:
+        previous_step = level_entrance
+        color = "#" + ("%06x" % random.randint(0, 16777215))
+        for step in solution.route:
+            canvas.create_line(previous_step[0] * 20 + 20,
+                               previous_step[1] * 20 + 20,
+                               previous_step[0] * 10 + step[0] * 10 + 20 + random.randint(-10, 10),
+                               previous_step[1] * 10 + step[1] * 10 + 20 + random.randint(-10, 10),
+                               step[0] * 20 + 20,
+                               step[1] * 20 + 20,
+                               smooth=1,
+                               fill=color,
+                               width=3)
+            previous_step = step
 
 
-root = tkinter.Tk()
-canvas = tkinter.Canvas(root)
-canvas.config(width=600, height=400)
-canvas.pack()
+if __name__ == "__main__":
+    with open('maps.json') as map_file:
+        maps = json.load(map_file)
+        MAP = maps['level' + str(LEVEL)]['map']
+        ENTRANCE = (maps['level' + str(LEVEL)]['entrance']['x'], maps['level' + str(LEVEL)]['entrance']['y'])
+        SWITCHES = double_coordinates(maps['level' + str(LEVEL)]['switches'])
 
-level_map, level_exit, switch_map = generate_graph()
-draw_graph(level_map)
+    width = WIDTH * 2 - 1
+    height = HEIGHT * 2 - 1
+    level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
+    fastest = math.inf
+    holes = set([(platform["x"], platform["y"]) for switch in SWITCHES for platform in switch["platforms"]
+                 if MAP[platform["y"] // 2][platform["x"] // 2] in ('l', 'r')])
+    holes_plus = set()
 
-conditions = []
-condition_set = {}
-conditions.append(Condition(*level_entrance, holes, holes_plus, 0, [], False))
-solutions = []
-for condition in conditions:
-    if condition.done and condition.turn < fastest:
-        fastest = condition.turn
-        solutions = [condition]
-    elif condition.done and condition.turn == fastest:
-        solutions.append(condition)
-print("Checked",
-      len(conditions),
-      "possible condition..." if len(conditions) == 1 else "possible conditions...")
-if len(solutions):
-    print("Found",
-          len(solutions),
-          "solution" if len(solutions) == 1 else "solutions",
-          "that takes" if len(solutions) == 1 else "that take",
-          solutions[0].turn,
-          "turns.")
-for solution in solutions:
-    print(solution.route)
-for solution in solutions:
-    previous_step = level_entrance
-    color = "#" + ("%06x" % random.randint(0, 16777215))
-    for step in solution.route:
-        canvas.create_line(previous_step[0] * 20 + 20,
-                           previous_step[1] * 20 + 20,
-                           previous_step[0] * 10 + step[0] * 10 + 20 + random.randint(-10, 10),
-                           previous_step[1] * 10 + step[1] * 10 + 20 + random.randint(-10, 10),
-                           step[0] * 20 + 20,
-                           step[1] * 20 + 20,
-                           smooth=1,
-                           fill=color,
-                           width=3)
-        previous_step = step
+    sys.setrecursionlimit(3000)
 
-tkinter.mainloop()
+    root = tkinter.Tk()
+    canvas = tkinter.Canvas(root)
+    canvas.config(width=600, height=400)
+    canvas.pack()
+
+    level_map, level_exit, switch_map = generate_graph()
+    draw_graph(level_map)
+
+    conditions = []
+    condition_set = {}
+    conditions.append(Condition(*level_entrance, holes, holes_plus, 0, [], False))
+    solutions = []
+    for condition in conditions:
+        if condition.done and condition.turn < fastest:
+            fastest = condition.turn
+            solutions = [condition]
+        elif condition.done and condition.turn == fastest:
+            solutions.append(condition)
+    show_results()
+
+    tkinter.mainloop()
