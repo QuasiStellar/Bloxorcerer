@@ -8,8 +8,44 @@ import sys
 
 WIDTH = 15
 HEIGHT = 10
+TILES = {'exit': 'e', 'red_floor': 'f'}
+SWITCH_TYPES = {'h': 'cross', 's': 'circle'}
+PLATFORM_TYPES = ('l', 'r')
 
 LEVEL = 5
+
+
+class Level:
+    def __init__(self, _map, entrance, switches):
+        self.map = _map
+        self.entrance = entrance
+        self.switches = switches
+
+
+class Entrance:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+class Switch:
+    def __init__(self, button, platforms):
+        self.button = button
+        self.platforms = platforms
+
+
+class Button:
+    def __init__(self, x, y, type):
+        self.x = x
+        self.y = y
+        self.type = type
+
+
+class Platform:
+    def __init__(self, x, y, mode):
+        self.x = x
+        self.y = y
+        self.mode = mode
 
 
 class Condition:
@@ -37,15 +73,15 @@ class Condition:
             if _neighbour in switch_map:
                 new_holes_plus = set()
                 for platform in switch_map[_neighbour]:
-                    if platform["mode"] == 'on' and (platform["x"], platform["y"]) in new_holes:
-                        new_holes.remove((platform["x"], platform["y"]))
-                    elif platform["mode"] == 'off' and (platform["x"], platform["y"]) not in new_holes:
-                        new_holes.add((platform["x"], platform["y"]))
-                    elif platform["mode"] == 'onoff':
-                        if (platform["x"], platform["y"]) in new_holes:
-                            new_holes.remove((platform["x"], platform["y"]))
+                    if platform.mode == 'on' and (platform.x, platform.y) in new_holes:
+                        new_holes.remove((platform.x, platform.y))
+                    elif platform.mode == 'off' and (platform.x, platform.y) not in new_holes:
+                        new_holes.add((platform.x, platform.y))
+                    elif platform.mode == 'onoff':
+                        if (platform.x, platform.y) in new_holes:
+                            new_holes.remove((platform.x, platform.y))
                         else:
-                            new_holes.add((platform["x"], platform["y"]))
+                            new_holes.add((platform.x, platform.y))
                 for hole in new_holes:
                     new_holes_plus.add(hole)
                     for neighbour in neighbours_button(*hole):
@@ -143,9 +179,9 @@ def generate_graph():
     _exit = (-1, -1)
     for i in range(WIDTH):
         for j in range(HEIGHT):
-            if MAP[j][i] != ' ':
+            if level.map[j][i] != ' ':
                 level_map_frame1[(i * 2, j * 2)] = []
-                if MAP[j][i] == 'e':
+                if level.map[j][i] == TILES['exit']:
                     _exit = (i * 2, j * 2)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
@@ -154,17 +190,17 @@ def generate_graph():
                 level_map_frame1[inbetween(*key, *neighbour)] = []
     for i in range(WIDTH):
         for j in range(HEIGHT):
-            if MAP[j][i] == 'f':
+            if level.map[j][i] == TILES['red_floor']:
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
-    for switch in SWITCHES:
-        if MAP[switch['button']['y'] // 2][switch['button']['x'] // 2] == 'h':
-            for platform in switch["platforms"]:
-                _switch_map[(switch['button']['x'], switch['button']['y'])].append(platform)
-        elif MAP[switch['button']['y'] // 2][switch['button']['x'] // 2] == 's':
-            for platform in switch['platforms']:
-                _switch_map[(switch['button']['x'], switch['button']['y'])].append(platform)
-                for neighbour in neighbours_button(switch['button']['x'], switch['button']['y']):
+    for switch in level.switches:
+        if switch.button.type == 'cross':
+            for platform in switch.platforms:
+                _switch_map[(switch.button.x, switch.button.y)].append(platform)
+        elif switch.button.type == 'circle':
+            for platform in switch.platforms:
+                _switch_map[(switch.button.x, switch.button.y)].append(platform)
+                for neighbour in neighbours_button(switch.button.x, switch.button.y):
                     if neighbour in level_map_frame1:
                         _switch_map[neighbour].append(platform)
     for hole in holes:
@@ -215,7 +251,7 @@ def show_results():
     for solution in solutions:
         print(solution.route)
     for solution in solutions:
-        previous_step = level_entrance
+        previous_step = (level.entrance.x, level.entrance.y)
         color = "#" + ("%06x" % random.randint(0, 16777215))
         for step in solution.route:
             canvas.create_line(previous_step[0] * 20 + 20,
@@ -233,16 +269,24 @@ def show_results():
 if __name__ == "__main__":
     with open('maps.json') as map_file:
         maps = json.load(map_file)
-        MAP = maps['level' + str(LEVEL)]['map']
-        ENTRANCE = (maps['level' + str(LEVEL)]['entrance']['x'], maps['level' + str(LEVEL)]['entrance']['y'])
-        SWITCHES = double_coordinates(maps['level' + str(LEVEL)]['switches'])
+        level = Level(maps['level' + str(LEVEL)]['map'],
+                      Entrance(maps['level' + str(LEVEL)]['entrance']['x'] * 2,
+                               maps['level' + str(LEVEL)]['entrance']['y'] * 2),
+                      [Switch(Button(switch['button']['x'],
+                                     switch['button']['y'],
+                                     SWITCH_TYPES[maps['level' + str(LEVEL)]['map']
+                                     [switch['button']['y'] // 2]
+                                     [switch['button']['x'] // 2]
+                                     ]),
+                              [Platform(platform['x'], platform['y'], platform['mode'])
+                               for platform in switch['platforms']])
+                       for switch in double_coordinates(maps['level' + str(LEVEL)]['switches'])])
 
     width = WIDTH * 2 - 1
     height = HEIGHT * 2 - 1
-    level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
     fastest = math.inf
-    holes = set([(platform["x"], platform["y"]) for switch in SWITCHES for platform in switch["platforms"]
-                 if MAP[platform["y"] // 2][platform["x"] // 2] in ('l', 'r')])
+    holes = set([(platform.x, platform.y) for switch in level.switches for platform in switch.platforms
+                 if level.map[platform.y // 2][platform.x // 2] in PLATFORM_TYPES])
     holes_plus = set()
 
     sys.setrecursionlimit(3000)
@@ -257,7 +301,7 @@ if __name__ == "__main__":
 
     conditions = []
     condition_set = {}
-    conditions.append(Condition(*level_entrance, holes, holes_plus, 0, [], False))
+    conditions.append(Condition(level.entrance.x, level.entrance.y, holes, holes_plus, 0, [], False))
     solutions = []
     for condition in conditions:
         if condition.done and condition.turn < fastest:
