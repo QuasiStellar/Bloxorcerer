@@ -8,19 +8,21 @@ import sys
 
 WIDTH = 15
 HEIGHT = 10
-LEVEL = 2
-with open('maps.json') as maps:
-    maps = json.load(maps)
+
+LEVEL = 5
+
+with open('maps.json') as maps_file:
+    maps = json.load(maps_file)
     MAP = maps['level' + str(LEVEL)]['map']
-    ENTRANCE = maps['level' + str(LEVEL)]['entrance']
-    SWITCHES = [[[platform[0] * 2, platform[1] * 2, platform[2]] for platform in switch]
-                for switch in maps['level' + str(LEVEL)]['switches']]
+    ENTRANCE = (maps['level' + str(LEVEL)]['entrance']['x'], maps['level' + str(LEVEL)]['entrance']['y'])
+    SWITCHES = maps['level' + str(LEVEL)]['switches']
 
 width = WIDTH * 2 - 1
 height = HEIGHT * 2 - 1
 level_entrance = (ENTRANCE[0] * 2, ENTRANCE[1] * 2)
 fastest = math.inf
-holes = set([(hole[0], hole[1]) for switch in SWITCHES for hole in switch])
+holes = set([(platform["x"] * 2, platform["y"] * 2) for switch in SWITCHES for platform in switch["platforms"]
+             if MAP[platform["y"]][platform["x"]] in ('l', 'r')])
 holes_plus = set()
 
 sys.setrecursionlimit(3000)
@@ -112,18 +114,16 @@ def generate_graph():
             if MAP[j][i] == 'f':
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
-    index = 0
-    for i in range(WIDTH):
-        for j in range(HEIGHT):
-            if MAP[j][i] == 'h':
-                _switch_map[(i * 2, j * 2)].append(SWITCHES[index])
-                index += 1
-            if MAP[j][i] == 's':
-                _switch_map[(i * 2, j * 2)].append(SWITCHES[index])
-                for neighbour in neighbours_button(i * 2, j * 2):
+    for switch in SWITCHES:
+        if MAP[switch['button']['y']][switch['button']['x']] == 'h':
+            for platform in switch["platforms"]:
+                _switch_map[(switch['button']['x'] * 2, switch['button']['y'] * 2)].append(platform)
+        elif MAP[switch['button']['y']][switch['button']['x']] == 's':
+            for platform in switch['platforms']:
+                _switch_map[(switch['button']['x'] * 2, switch['button']['y'] * 2)].append(platform)
+                for neighbour in neighbours_button(switch['button']['x'] * 2, switch['button']['y'] * 2):
                     if neighbour in level_map_frame1:
-                        _switch_map[neighbour].append(SWITCHES[index])
-                index += 1
+                        _switch_map[neighbour].append(platform)
     for hole in holes:
         holes_plus.add(hole)
         for neighbour in neighbours_button(*hole):
@@ -182,17 +182,16 @@ class Condition:
             new_holes_plus = self.holes_plus.copy()
             if _neighbour in switch_map:
                 new_holes_plus = set()
-                for platform_set in switch_map[_neighbour]:
-                    for platform in platform_set:
-                        if platform[2] == 'on' and (platform[0], platform[1]) in new_holes:
-                            new_holes.remove((platform[0], platform[1]))
-                        elif platform[2] == 'off' and (platform[0], platform[1]) not in new_holes:
-                            new_holes.add((platform[0], platform[1]))
-                        elif platform[2] == 'onoff':
-                            if (platform[0], platform[1]) in new_holes:
-                                new_holes.remove((platform[0], platform[1]))
-                            else:
-                                new_holes.add((platform[0], platform[1]))
+                for platform in switch_map[_neighbour]:
+                    if platform["mode"] == 'on' and (platform["x"] * 2, platform["y"] * 2) in new_holes:
+                        new_holes.remove((platform["x"] * 2, platform["y"] * 2))
+                    elif platform["mode"] == 'off' and (platform["x"] * 2, platform["y"] * 2) not in new_holes:
+                        new_holes.add((platform["x"] * 2, platform["y"] * 2))
+                    elif platform["mode"] == 'onoff':
+                        if (platform["x"] * 2, platform["y"] * 2) in new_holes:
+                            new_holes.remove((platform["x"] * 2, platform["y"] * 2))
+                        else:
+                            new_holes.add((platform["x"] * 2, platform["y"] * 2))
                 for hole in new_holes:
                     new_holes_plus.add(hole)
                     for neighbour in neighbours_button(*hole):
@@ -238,8 +237,8 @@ if len(solutions):
           "that takes" if len(solutions) == 1 else "that take",
           solutions[0].turn,
           "turns.")
-# for solution in solutions:
-#     print(solution.route)
+for solution in solutions:
+    print(solution.route)
 for solution in solutions:
     previous_step = level_entrance
     color = "#" + ("%06x" % random.randint(0, 16777215))

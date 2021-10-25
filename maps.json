@@ -12,10 +12,10 @@
       "               ",
       "               "
     ],
-    "entrance": [
-      3,
-      3
-    ],
+    "entrance": {
+      "x": 3,
+      "y": 3
+    },
     "switches": []
   },
   "level2": {
@@ -31,35 +31,47 @@
       "               ",
       "               "
     ],
-    "entrance": [
-      1,
-      5
-    ],
+    "entrance": {
+      "x": 1,
+      "y": 5
+    },
     "switches": [
-      [
-        [
-          4,
-          5,
-          "onoff"
-        ],
-        [
-          5,
-          5,
-          "onoff"
+      {
+        "button": {
+          "x": 2,
+          "y": 3
+        },
+        "platforms": [
+          {
+            "x": 4,
+            "y": 5,
+            "mode": "onoff"
+          },
+          {
+            "x": 5,
+            "y": 5,
+            "mode": "onoff"
+          }
         ]
-      ],
-      [
-        [
-          10,
-          5,
-          "onoff"
-        ],
-        [
-          11,
-          5,
-          "onoff"
+      },
+      {
+        "button": {
+          "x": 8,
+          "y": 2
+        },
+        "platforms": [
+          {
+            "x": 10,
+            "y": 5,
+            "mode": "onoff"
+          },
+          {
+            "x": 11,
+            "y": 5,
+            "mode": "onoff"
+          }
         ]
-      ]
+      }
     ]
   },
   "level3": {
@@ -75,10 +87,10 @@
       "               ",
       "               "
     ],
-    "entrance": [
-      1,
-      5
-    ],
+    "entrance": {
+      "x": 1,
+      "y": 5
+    },
     "switches": []
   },
   "level4": {
@@ -94,11 +106,103 @@
       "     beb  ffbf ",
       "     bbb  ffff "
     ],
-    "entrance": [
-      1,
-      6
-    ],
+    "entrance": {
+      "x": 1,
+      "y": 6
+    },
     "switches": []
+  },
+  "level5": {
+    "map": [
+      "           bbbb",
+      " bbbbkqbsbbbbbb",
+      " bbbb       bbb",
+      " bbsb          ",
+      " bbbb          ",
+      "   bbbsbkqbbb  ",
+      "          bbbbs",
+      "bbb       bbbbb",
+      "bebbbkqbbbbbb  ",
+      "bbbb           "
+    ],
+    "entrance": {
+      "x": 13,
+      "y": 1
+    },
+    "switches": [
+      {
+        "button": {
+          "x": 8,
+          "y": 1
+        },
+        "platforms": [
+          {
+            "x": 6,
+            "y": 1,
+            "mode": "onoff"
+          },
+          {
+            "x": 5,
+            "y": 1,
+            "mode": "onoff"
+          }
+        ]
+      },
+      {
+        "button": {
+          "x": 6,
+          "y": 5
+        },
+        "platforms": [
+          {
+            "x": 5,
+            "y": 8,
+            "mode": "off"
+          },
+          {
+            "x": 6,
+            "y": 8,
+            "mode": "off"
+          }
+        ]
+      },
+      {
+        "button": {
+          "x": 3,
+          "y": 3
+        },
+        "platforms": [
+          {
+            "x": 5,
+            "y": 8,
+            "mode": "on"
+          },
+          {
+            "x": 6,
+            "y": 8,
+            "mode": "on"
+          }
+        ]
+      },
+      {
+        "button": {
+          "x": 14,
+          "y": 6
+        },
+        "platforms": [
+          {
+            "x": 5,
+            "y": 8,
+            "mode": "onoff"
+          },
+          {
+            "x": 6,
+            "y": 8,
+            "mode": "onoff"
+          }
+        ]
+      }
+    ]
   },
   "level6": {
     "map": [
@@ -113,11 +217,128 @@
       "      bbbbb    ",
       "       bbb     "
     ],
-    "entrance": [
-      0,
-      3
-    ],
+    "entrance": {
+      "x": 0,
+      "y": 3
+    },
     "switches": []
+  },
+  "level7": {
+    "map": [
+      "               ",
+      "        bbbb   ",
+      "        bbbb   ",
+      "bbb     b  bbbb",
+      "bbbbbbbbb   beb",
+      "bbb    bbh  bbb",
+      "bbb    bbb  bbb",
+      " bbl   b       ",
+      "  bbbbbb       ",
+      "               "
+    ],
+    "entrance": {
+      "x": 1,
+      "y": 4
+    },
+    "switches": [
+      {
+        "button": {
+          "x": 9,
+          "y": 5
+        },
+        "platforms": [
+          {
+            "x": 3,
+            "y": 7,
+            "mode": "onoff"
+          }
+        ]
+      }
+    ]
+  },
+  "level11": {
+    "map": [
+      "   bbbk        ",
+      "   bebk        ",
+      "   bbb         ",
+      "   b   bbbbbb  ",
+      "   b   bb  bb  ",
+      "  bbbbbbb  bbb ",
+      "       bs    b ",
+      "       bbbb  b ",
+      "       bbbbbbb ",
+      "          bbb  "
+    ],
+    "entrance": {
+      "x": 2,
+      "y": 5
+    },
+    "switches": [
+      {
+        "button": {
+          "x": 8,
+          "y": 6
+        },
+        "platforms": [
+          {
+            "x": 6,
+            "y": 0,
+            "mode": "off"
+          },
+          {
+            "x": 6,
+            "y": 1,
+            "mode": "off"
+          }
+        ]
+      }
+    ]
+  },
+  "level12": {
+    "map": [
+      "             h ",
+      "      bbb  bbb ",
+      "      bhbbbbbl ",
+      "    bbbbb  bb  ",
+      "    bebl   bb  ",
+      "  bbbbb   bbbb ",
+      " bbbb     bbbb ",
+      " bbbb  bbbbb   ",
+      "      bbb      ",
+      "      bbb      "
+    ],
+    "entrance": {
+      "x": 3,
+      "y": 6
+    },
+    "switches": [
+      {
+        "button": {
+          "x": 7,
+          "y": 2
+        },
+        "platforms": [
+          {
+            "x": 13,
+            "y": 2,
+            "mode": "onoff"
+          }
+        ]
+      },
+      {
+        "button": {
+          "x": 13,
+          "y": 0
+        },
+        "platforms": [
+          {
+            "x": 7,
+            "y": 4,
+            "mode": "onoff"
+          }
+        ]
+      }
+    ]
   },
   "level13": {
     "map": [
@@ -132,11 +353,55 @@
       "    bbffffff   ",
       "    bbb  bb    "
     ],
-    "entrance": [
-      13,
-      3
-    ],
+    "entrance": {
+      "x": 13,
+      "y": 3
+    },
     "switches": []
+  },
+  "level14": {
+    "map": [
+      "        bbb    ",
+      "   bbb  bbb    ",
+      "blrbbbbbbbbbbb ",
+      "blrbbb      hb ",
+      "b           bb ",
+      "b           bb ",
+      "b       bbbbbb ",
+      "bbbbb   bbb    ",
+      " bbeb   bbb    ",
+      "  bbb   bbbbbh "
+    ],
+    "entrance": {
+      "x": 4,
+      "y": 2
+    },
+    "switches": [
+      [
+        [
+          1,
+          2,
+          "onoff"
+        ],
+        [
+          2,
+          2,
+          "onoff"
+        ]
+      ],
+      [
+        [
+          1,
+          3,
+          "onoff"
+        ],
+        [
+          2,
+          3,
+          "onoff"
+        ]
+      ]
+    ]
   },
   "level34": {
     "map": [
@@ -151,10 +416,10 @@
       "               ",
       "               "
     ],
-    "entrance": [
-      0,
-      0
-    ],
+    "entrance": {
+      "x": 0,
+      "y": 0
+    },
     "switches": []
   }
 }
