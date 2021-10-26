@@ -2,50 +2,21 @@ import math
 import random
 import tkinter
 import json
-from collections import defaultdict
 import sys
+from collections import defaultdict
 
+import utils
+from button import Button
+from entrance import Entrance
+from level import Level
+from platform import Platform
+from switch import Switch
 
-WIDTH = 15
-HEIGHT = 10
 TILES = {'exit': 'e', 'red_floor': 'f'}
 SWITCH_TYPES = {'h': 'cross', 's': 'circle'}
 PLATFORM_TYPES = ('l', 'r')
 
 LEVEL = 5
-
-
-class Level:
-    def __init__(self, _map, entrance, switches):
-        self.map = _map
-        self.entrance = entrance
-        self.switches = switches
-
-
-class Entrance:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-
-class Switch:
-    def __init__(self, button, platforms):
-        self.button = button
-        self.platforms = platforms
-
-
-class Button:
-    def __init__(self, x, y, type):
-        self.x = x
-        self.y = y
-        self.type = type
-
-
-class Platform:
-    def __init__(self, x, y, mode):
-        self.x = x
-        self.y = y
-        self.mode = mode
 
 
 class Condition:
@@ -65,7 +36,7 @@ class Condition:
             self.generate_new()
 
     def generate_new(self):
-        for _neighbour in neighbours_block(self.pos_x, self.pos_y):
+        for _neighbour in utils.neighbours_block(self.pos_x, self.pos_y):
             if _neighbour not in level_map or _neighbour in self.holes_plus:
                 continue
             new_holes = self.holes.copy()
@@ -84,7 +55,7 @@ class Condition:
                             new_holes.add((platform.x, platform.y))
                 for hole in new_holes:
                     new_holes_plus.add(hole)
-                    for neighbour in neighbours_button(*hole):
+                    for neighbour in utils.neighbours_button(*hole):
                         if neighbour in level_map:
                             new_holes_plus.add(neighbour)
             condition_hash = hash((_neighbour, tuple(new_holes)))
@@ -99,97 +70,22 @@ class Condition:
                                             False))
 
 
-def neighbours_button(x, y):
-    neighbours = []
-    if (x + y) % 2:
-        return neighbours
-    if y >= 1:
-        neighbours.append((x, y - 1))
-    if y <= height - 2:
-        neighbours.append((x, y + 1))
-    if x >= 1:
-        neighbours.append((x - 1, y))
-    if x <= width - 2:
-        neighbours.append((x + 1, y))
-    return neighbours
-
-
-def neighbours_cube(x, y):
-    neighbours = []
-    if (x + y) % 2:
-        return neighbours
-    if y >= 2:
-        neighbours.append((x, y - 2))
-    if y <= height - 3:
-        neighbours.append((x, y + 2))
-    if x >= 2:
-        neighbours.append((x - 2, y))
-    if x <= width - 3:
-        neighbours.append((x + 2, y))
-    return neighbours
-
-
-def neighbours_block(x, y):
-    neighbours = []
-    if (x + y) % 2:
-        if x % 2:  # lying horizontal
-            if y >= 2:
-                neighbours.append((x, y - 2))
-            if y <= height - 3:
-                neighbours.append((x, y + 2))
-            if x >= 3:
-                neighbours.append((x - 3, y))
-            if x <= width - 4:
-                neighbours.append((x + 3, y))
-        else:  # lying vertical
-            if y >= 3:
-                neighbours.append((x, y - 3))
-            if y <= height - 4:
-                neighbours.append((x, y + 3))
-            if x >= 2:
-                neighbours.append((x - 2, y))
-            if x <= width - 3:
-                neighbours.append((x + 2, y))
-    else:  # standing
-        if y >= 3:
-            neighbours.append((x, y - 3))
-        if y <= height - 4:
-            neighbours.append((x, y + 3))
-        if x >= 3:
-            neighbours.append((x - 3, y))
-        if x <= width - 4:
-            neighbours.append((x + 3, y))
-    return neighbours
-
-
-def inbetween(x1, y1, x2, y2):
-    return (x1 + x2) // 2, (y1 + y2) // 2
-
-
-def double_coordinates(switches):
-    for switch in switches:
-        switch['button']['x'], switch['button']['y'] = switch['button']['x'] * 2, switch['button']['y'] * 2
-        for platform in switch['platforms']:
-            platform['x'], platform['y'] = platform['x'] * 2, platform['y'] * 2
-    return switches
-
-
 def generate_graph():
     level_map_frame1 = {}
     _exit = (-1, -1)
-    for i in range(WIDTH):
-        for j in range(HEIGHT):
+    for i in range(utils.WIDTH):
+        for j in range(utils.HEIGHT):
             if level.map[j][i] != ' ':
                 level_map_frame1[(i * 2, j * 2)] = []
                 if level.map[j][i] == TILES['exit']:
                     _exit = (i * 2, j * 2)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
-        for neighbour in neighbours_cube(*key):
+        for neighbour in utils.neighbours_cube(*key):
             if neighbour in level_map_frame2:
-                level_map_frame1[inbetween(*key, *neighbour)] = []
-    for i in range(WIDTH):
-        for j in range(HEIGHT):
+                level_map_frame1[utils.inbetween(*key, *neighbour)] = []
+    for i in range(utils.WIDTH):
+        for j in range(utils.HEIGHT):
             if level.map[j][i] == TILES['red_floor']:
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
@@ -200,17 +96,17 @@ def generate_graph():
         elif switch.button.type == 'circle':
             for platform in switch.platforms:
                 _switch_map[(switch.button.x, switch.button.y)].append(platform)
-                for neighbour in neighbours_button(switch.button.x, switch.button.y):
+                for neighbour in utils.neighbours_button(switch.button.x, switch.button.y):
                     if neighbour in level_map_frame1:
                         _switch_map[neighbour].append(platform)
     for hole in holes:
         holes_plus.add(hole)
-        for neighbour in neighbours_button(*hole):
+        for neighbour in utils.neighbours_button(*hole):
             if neighbour in level_map_frame1:
                 holes_plus.add(neighbour)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
-        for neighbour in neighbours_block(*key):
+        for neighbour in utils.neighbours_block(*key):
             if neighbour in level_map_frame2 and neighbour not in level_map_frame1[key]:
                 level_map_frame1[key].append(neighbour)
     return level_map_frame1, _exit, _switch_map
@@ -227,10 +123,10 @@ def draw_graph(_map):
         for neighbour in _map[dot]:
             canvas.create_line(dot[0] * 20 + 20,
                                dot[1] * 20 + 20,
-                               *inbetween(dot[0] * 20 + 35,
-                                          dot[1] * 20 + 35,
-                                          neighbour[0] * 20 + 35,
-                                          neighbour[1] * 20 + 35),
+                               *utils.inbetween(dot[0] * 20 + 35,
+                                                dot[1] * 20 + 35,
+                                                neighbour[0] * 20 + 35,
+                                                neighbour[1] * 20 + 35),
                                neighbour[0] * 20 + 20,
                                neighbour[1] * 20 + 20,
                                smooth=1,
@@ -280,10 +176,8 @@ if __name__ == "__main__":
                                      ]),
                               [Platform(platform['x'], platform['y'], platform['mode'])
                                for platform in switch['platforms']])
-                       for switch in double_coordinates(maps['level' + str(LEVEL)]['switches'])])
+                       for switch in utils.double_coordinates(maps['level' + str(LEVEL)]['switches'])])
 
-    width = WIDTH * 2 - 1
-    height = HEIGHT * 2 - 1
     fastest = math.inf
     holes = set([(platform.x, platform.y) for switch in level.switches for platform in switch.platforms
                  if level.map[platform.y // 2][platform.x // 2] in PLATFORM_TYPES])
