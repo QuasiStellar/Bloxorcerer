@@ -37,10 +37,9 @@
     },
     "switches": [
       {
-        "button": {
-          "x": 2,
-          "y": 3
-        },
+        "type": "circle",
+        "x": 2,
+        "y": 3,
         "platforms": [
           {
             "x": 4,
@@ -55,10 +54,9 @@
         ]
       },
       {
-        "button": {
-          "x": 8,
-          "y": 2
-        },
+        "type": "circle",
+        "x": 8,
+        "y": 2,
         "platforms": [
           {
             "x": 10,
@@ -131,10 +129,9 @@
     },
     "switches": [
       {
-        "button": {
-          "x": 8,
-          "y": 1
-        },
+        "type": "circle",
+        "x": 8,
+        "y": 1,
         "platforms": [
           {
             "x": 6,
@@ -149,10 +146,9 @@
         ]
       },
       {
-        "button": {
-          "x": 6,
-          "y": 5
-        },
+        "type": "circle",
+        "x": 6,
+        "y": 5,
         "platforms": [
           {
             "x": 5,
@@ -167,10 +163,9 @@
         ]
       },
       {
-        "button": {
-          "x": 3,
-          "y": 3
-        },
+        "type": "circle",
+        "x": 3,
+        "y": 3,
         "platforms": [
           {
             "x": 5,
@@ -185,10 +180,9 @@
         ]
       },
       {
-        "button": {
-          "x": 14,
-          "y": 6
-        },
+        "type": "circle",
+        "x": 14,
+        "y": 6,
         "platforms": [
           {
             "x": 5,
@@ -242,15 +236,51 @@
     },
     "switches": [
       {
-        "button": {
-          "x": 9,
-          "y": 5
-        },
+        "type": "cross",
+        "x": 9,
+        "y": 5,
         "platforms": [
           {
             "x": 3,
             "y": 7,
             "mode": "onoff"
+          }
+        ]
+      }
+    ]
+  },
+  "level8": {
+    "map": [
+      "         bbb   ",
+      "         bbb   ",
+      "         bbb   ",
+      "bbbbbb   bbbbbb",
+      "bbbbvb   bbbbeb",
+      "bbbbbb   bbbbbb",
+      "         bbb   ",
+      "         bbb   ",
+      "         bbb   ",
+      "               "
+    ],
+    "entrance": {
+      "x": 1,
+      "y": 4
+    },
+    "switches": [
+      {
+        "type": "clone",
+        "x": 4,
+        "y": 4,
+        "platforms": [
+          {
+            "x": 10,
+            "y": 1,
+            "mode": "cube"
+          },
+          {
+            "x": 10,
+            "y": 7,
+            "mode": "cube"
           }
         ]
       }
@@ -275,10 +305,9 @@
     },
     "switches": [
       {
-        "button": {
-          "x": 8,
-          "y": 6
-        },
+        "type": "circle",
+        "x": 8,
+        "y": 6,
         "platforms": [
           {
             "x": 6,
@@ -313,10 +342,9 @@
     },
     "switches": [
       {
-        "button": {
-          "x": 7,
-          "y": 2
-        },
+        "type": "cross",
+        "x": 7,
+        "y": 2,
         "platforms": [
           {
             "x": 13,
@@ -326,10 +354,9 @@
         ]
       },
       {
-        "button": {
-          "x": 13,
-          "y": 0
-        },
+        "type": "cross",
+        "x": 13,
+        "y": 0,
         "platforms": [
           {
             "x": 7,
@@ -377,30 +404,40 @@
       "y": 2
     },
     "switches": [
-      [
-        [
-          1,
-          2,
-          "onoff"
-        ],
-        [
-          2,
-          2,
-          "onoff"
+      {
+        "type": "cross",
+        "x": 12,
+        "y": 3,
+        "platforms": [
+          {
+            "x": 1,
+            "y": 2,
+            "mode": "onoff"
+          },
+          {
+            "x": 2,
+            "y": 2,
+            "mode": "onoff"
+          }
         ]
-      ],
-      [
-        [
-          1,
-          3,
-          "onoff"
-        ],
-        [
-          2,
-          3,
-          "onoff"
+      },
+      {
+        "type": "cross",
+        "x": 13,
+        "y": 9,
+        "platforms": [
+          {
+            "x": 1,
+            "y": 3,
+            "mode": "onoff"
+          },
+          {
+            "x": 2,
+            "y": 3,
+            "mode": "onoff"
+          }
         ]
-      ]
+      }
     ]
   },
   "level34": {

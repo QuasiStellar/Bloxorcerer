@@ -74,7 +74,7 @@ def inbetween(x1, y1, x2, y2):
 
 def double_coordinates(switches):
     for switch in switches:
-        switch['button']['x'], switch['button']['y'] = switch['button']['x'] * 2, switch['button']['y'] * 2
+        switch['x'], switch['y'] = switch['x'] * 2, switch['y'] * 2
         for platform in switch['platforms']:
             platform['x'], platform['y'] = platform['x'] * 2, platform['y'] * 2
     return switches

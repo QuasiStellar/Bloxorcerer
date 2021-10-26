@@ -6,7 +6,6 @@ import sys
 from collections import defaultdict
 
 import utils
-from button import Button
 from entrance import Entrance
 from level import Level
 from platform import Platform
@@ -90,13 +89,13 @@ def generate_graph(_level):
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
     for switch in _level.switches:
-        if switch.button.type == 'cross':
+        if switch.type == 'cross':
             for platform in switch.platforms:
-                _switch_map[(switch.button.x, switch.button.y)].append(platform)
-        elif switch.button.type == 'circle':
+                _switch_map[(switch.x, switch.y)].append(platform)
+        elif switch.type == 'circle':
             for platform in switch.platforms:
-                _switch_map[(switch.button.x, switch.button.y)].append(platform)
-                for neighbour in utils.neighbours_button(switch.button.x, switch.button.y):
+                _switch_map[(switch.x, switch.y)].append(platform)
+                for neighbour in utils.neighbours_button(switch.x, switch.y):
                     if neighbour in level_map_frame1:
                         _switch_map[neighbour].append(platform)
     for hole in holes:
@@ -168,12 +167,9 @@ if __name__ == "__main__":
         level = Level(maps['level' + str(LEVEL)]['map'],
                       Entrance(maps['level' + str(LEVEL)]['entrance']['x'] * 2,
                                maps['level' + str(LEVEL)]['entrance']['y'] * 2),
-                      [Switch(Button(switch['button']['x'],
-                                     switch['button']['y'],
-                                     SWITCH_TYPES[maps['level' + str(LEVEL)]['map']
-                                     [switch['button']['y'] // 2]
-                                     [switch['button']['x'] // 2]
-                                     ]),
+                      [Switch(switch['type'],
+                              switch['x'],
+                              switch['y'],
                               [Platform(platform['x'], platform['y'], platform['mode'])
                                for platform in switch['platforms']])
                        for switch in utils.double_coordinates(maps['level' + str(LEVEL)]['switches'])])
