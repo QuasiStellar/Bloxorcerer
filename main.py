@@ -70,14 +70,14 @@ class Condition:
                                             False))
 
 
-def generate_graph():
+def generate_graph(_level):
     level_map_frame1 = {}
     _exit = (-1, -1)
     for i in range(utils.WIDTH):
         for j in range(utils.HEIGHT):
-            if level.map[j][i] != ' ':
+            if _level.map[j][i] != ' ':
                 level_map_frame1[(i * 2, j * 2)] = []
-                if level.map[j][i] == TILES['exit']:
+                if _level.map[j][i] == TILES['exit']:
                     _exit = (i * 2, j * 2)
     level_map_frame2 = level_map_frame1.copy()
     for key in level_map_frame2:
@@ -86,10 +86,10 @@ def generate_graph():
                 level_map_frame1[utils.inbetween(*key, *neighbour)] = []
     for i in range(utils.WIDTH):
         for j in range(utils.HEIGHT):
-            if level.map[j][i] == TILES['red_floor']:
+            if _level.map[j][i] == TILES['red_floor']:
                 level_map_frame1.pop((i * 2, j * 2))
     _switch_map = defaultdict(list)
-    for switch in level.switches:
+    for switch in _level.switches:
         if switch.button.type == 'cross':
             for platform in switch.platforms:
                 _switch_map[(switch.button.x, switch.button.y)].append(platform)
@@ -133,21 +133,21 @@ def draw_graph(_map):
                                fill='blue' if abs(dot[0] + dot[1] - neighbour[0] - neighbour[1]) == 2 else 'red')
 
 
-def show_results():
+def show_results(_conditions, _solutions, _level):
     print("Checked",
-          len(conditions),
-          "possible condition..." if len(conditions) == 1 else "possible conditions...")
-    if len(solutions):
+          len(_conditions),
+          "possible condition..." if len(_conditions) == 1 else "possible conditions...")
+    if len(_solutions):
         print("Found",
-              len(solutions),
-              "solution" if len(solutions) == 1 else "solutions",
-              "that takes" if len(solutions) == 1 else "that take",
-              solutions[0].turn,
+              len(_solutions),
+              "solution" if len(_solutions) == 1 else "solutions",
+              "that takes" if len(_solutions) == 1 else "that take",
+              _solutions[0].turn,
               "turns.")
-    for solution in solutions:
+    for solution in _solutions:
         print(solution.route)
-    for solution in solutions:
-        previous_step = (level.entrance.x, level.entrance.y)
+    for solution in _solutions:
+        previous_step = (_level.entrance.x, _level.entrance.y)
         color = "#" + ("%06x" % random.randint(0, 16777215))
         for step in solution.route:
             canvas.create_line(previous_step[0] * 20 + 20,
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     canvas.config(width=600, height=400)
     canvas.pack()
 
-    level_map, level_exit, switch_map = generate_graph()
+    level_map, level_exit, switch_map = generate_graph(level)
     draw_graph(level_map)
 
     conditions = []
@@ -203,6 +203,6 @@ if __name__ == "__main__":
             solutions = [condition]
         elif condition.done and condition.turn == fastest:
             solutions.append(condition)
-    show_results()
+    show_results(conditions, solutions, level)
 
     tkinter.mainloop()
